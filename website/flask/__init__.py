@@ -40,15 +40,13 @@ from Datasets2Tools import Datasets2Tools
 ########## 2. App Setup
 #############################################
 ##### 1. Flask App #####
-entry_point = '/datasets2tools-dev'
+entry_point = os.environ.get('ENTRYPOINT', '/datasets2tools')
 app = Flask(__name__, static_url_path=os.path.join(entry_point, 'static'))
 dropzone = Dropzone(app)
 
 ##### 2. Database connection #####
-# Database Connection Data
-dbFile = '../../db.txt'
-if os.path.exists(dbFile):
-	with open(dbFile) as openfile: os.environ['SQLALCHEMY_DATABASE_URI'], os.environ['SECRET_KEY'] = openfile.readlines()
+app.config['ENTRYPOINT'] = entry_point
+app.config['ORIGIN'] = os.environ.get('ORIGIN', 'https://amp.pharm.mssm.edu')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['SQLALCHEMY_DATABASE_URI']
 app.config['SECRET_KEY'] = os.environ['SECRET_KEY']
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
@@ -204,7 +202,7 @@ def search():
 	search_data = Datasets2Tools.search(search_filters = search_filters, search_options = search_options)
 
 	# Return template
-	return render_template('search.html', object_type=search_options['object_type'], search_data=search_data)
+	return render_template('search.html', object_type=search_options['object_type'], search_data=search_data, config=app.config)
 
 #############################################
 ########## 3. Landing Pages
@@ -233,7 +231,7 @@ def landing(object_type, object_identifier):
 				associated_search_filters.update(parameters)
 			associated_objects[associated_object_type] = Datasets2Tools.search(search_filters = associated_search_filters, search_options = associated_search_options, get_related_objects=False, get_fairness=False)
 	# Return template
-	return render_template('landing.html', object_data=object_data, object_type=object_type, associated_objects=associated_objects)
+	return render_template('landing.html', object_data=object_data, object_type=object_type, associated_objects=associated_objects, config=app.config)
 
 #############################################
 ########## 4. Contribute Page
